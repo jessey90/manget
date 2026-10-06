@@ -4,15 +4,19 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
-      - run: |
+      - name: Build universal binary
+        run: |
           cargo build --release -p manget_cli --target aarch64-apple-darwin
           cargo build --release -p manget_cli --target x86_64-apple-darwin
-          lipo -create -output manget_cli \
+          mkdir -p dist
+          lipo -create -output dist/manget_cli \
             target/aarch64-apple-darwin/release/manget_cli \
             target/x86_64-apple-darwin/release/manget_cli
+          lipo -info dist/manget_cli
+          tar -czf dist/manget_cli-macos-universal.tar.gz -C dist manget_cli
       - uses: actions/upload-artifact@v4
         with:
           name: manget_cli-macos
-          path: manget_cli
+          path: dist/manget_cli-macos-universal.tar.gz
